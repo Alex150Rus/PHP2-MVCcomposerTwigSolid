@@ -9,6 +9,8 @@
 namespace app\controllers;
 
 
+use app\interfaces\IRenderer;
+
 abstract class Controller
 {
   //храним текущий экшн
@@ -20,12 +22,21 @@ abstract class Controller
   //храним состояние использования статической части сайта
   protected $useLayout = true;
 
+  //композиция - делегирование части задач другому классу
+  protected $renderer;
+
+  public function __construct(IRenderer $renderer)
+  {
+    $this->renderer = $renderer;
+  }
+
   //метод запускает действие, которое примает в параметр из папки public index от объекта этого класса
-  public function runAction($action = null) {
+  public function runAction($action = null)
+  {
     //записываем текущий экшн, если он передан, если нет - используем дефолтный
     $this->action = $action ?: $this->defaultAction;
     //формируем наименование метода конкатенацией и увеличиваем первую букву
-    $method= "action" . ucfirst($this->action);
+    $method = "action" . ucfirst($this->action);
 
     if (method_exists($this, $method)) {
       //если метод существет, то запускаем его
@@ -36,24 +47,10 @@ abstract class Controller
     }
   }
 
-  //дефолтный экшн - рисует каталог
-  public function actionIndex() {
-    echo "catalog";
-  }
-
-  //рисует карточку товара
-  public function actionCard() {
-    // для этого метода не применяем статическую часть сайта
-    $this->useLayout=false;
-    //получаем id us url (прилетит туда гет запросом)
-    $id = $_GET['id'];
-    //создаём необходимую сущность для отрисовки, вытаскивая нужную инфу из БД
-    $product = Product::getOne($id);
-    // отправляем на отрисовку
-    echo $this->render("card", ['product'=>$product]);
-  }
-  //метод для отрисовки принимает имя вьюхи и массив с параметрами
-  protected function render($template, $params=[]) {
+  /*метод для отрисовки принимает имя вьюхи и массив с параметрами. В методе принимается решение об отображении
+  темплейта с лэйаутом или без него*/
+  protected function render($template, $params = [])
+  {
     //проверяем использовать статическуб часть сайта или нет
     if ($this->useLayout) {
       // если true - возвращаем шаблон, отрисованный методом renderTemplate и статическую часть сайта
@@ -63,17 +60,10 @@ abstract class Controller
     // если не использовать, то просто отрисовываем шаблон
     return $this->renderTemplate($template, $params);
   }
-//метод для отрисовки шаблона
-  protected function renderTemplate ($template, $params=[]){
-    //начинаем буферизацию
-    ob_start();
-    //загоняем в переменную путь к шаблону
-    $templatePath = TEMPLATES_DIR . "layouts/$template" . ".php";
-    //разворачиваем массив с параметрами и записываем их в переменные
-    extract($params);
-    include $templatePath;
-    // заканчиваем буферизацию и возвращаем данные в виде строки - без этого у нас произойдёт моментальная отрисовка в
-    // этом месте
-    return ob_get_clean();
+
+//метод для отрисовки шаблона - делегирован объекту класса TemplateRenderer
+  protected function renderTemplate($template, $params = [])
+  {
+    return $this->renderer->render($template, $params);
   }
 }

@@ -2,12 +2,12 @@
 
 include ('../services/Autoloader.php');
 include ('../config/main.php');
+
 use app\services\Autoloader;
 use app\models\Product;
+use app\services\renderers\TemplateRenderer;
 
 spl_autoload_register([new Autoloader(), 'loadClass']);
-
-echo DEFAULT_CONTROLLER;
 
 $controllerName = ($_GET['c']) ?? DEFAULT_CONTROLLER;
 $actionName = (isset($_GET['a']) ? $_GET['a'] : 0);
@@ -15,7 +15,7 @@ $actionName = (isset($_GET['a']) ? $_GET['a'] : 0);
 $controllerClass = CONTROLLER_NAMESPACE . ucfirst($controllerName) . "Controller";
 
 if (class_exists($controllerClass)){
-  $controller = new $controllerClass($actionName);
+  $controller = new $controllerClass(new TemplateRenderer());
   $controller->runAction($actionName);
 };
 

@@ -64,7 +64,7 @@ class Db implements IDb
     return $this->getConnection()->lastInsertId();
   }
 
-  public function execute(string $sql, array $params = [])
+  public function execute($sql, array $params = [])
   {
   $this->query($sql, $params);
     return true;

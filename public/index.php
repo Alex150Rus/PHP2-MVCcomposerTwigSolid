@@ -2,6 +2,7 @@
 
 include ('../services/Autoloader.php');
 include ('../config/main.php');
+include ('../vendor/autoload.php');
 
 use app\services\Autoloader;
 use app\models\Product;

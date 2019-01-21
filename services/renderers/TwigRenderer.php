@@ -30,7 +30,6 @@ class TwigRenderer implements IRenderer
 
   public function render($template, $params = [])
 {
-  $template = str_replace('../product','',$template);
   $template.= ".twig";
   return $this->templater->render($template, $params);
 }
